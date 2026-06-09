@@ -1,0 +1,64 @@
+services:
+  mariadb:
+    container_name: mariadb                   # Name of the container
+    build:
+      context: requirements/mariadb           # Location of the Dockerfile
+      dockerfile: Dockerfile                  # Name of the Dockerfile
+    restart: always                           # Doesnt restart the container if it was stopped manually
+    env_file: .env                            # File containing environment variables
+    expose:                                   # Port to expose
+      - "3306"
+    networks:
+      - inception                             # Network to which the container belongs
+    volumes:
+      - mariadb_data:/var/lib/mysql
+
+  wordpress:
+    container_name: wordpress
+    build:
+      context: requirements/wordpress
+      dockerfile: Dockerfile
+    restart: always
+    depends_on:                               # Waits for the mariadb container to be up and running before starting wordpress
+      - mariadb
+    env_file: .env
+    expose:
+    - "9000"
+    networks:
+      - inception
+    volumes:
+      - wordpress_data:/var/www/wordpress
+
+  nginx:
+    container_name: nginx
+    build:
+      context: requirements/nginx
+      dockerfile: Dockerfile
+    restart: always                           # Restarts the container if it crash
+    depends_on:                               # Waits for the wordpress container to be up and running before starting nginx
+      - wordpress
+    ports:
+      - "443:443"                             # Port exposed to the host machine
+    networks:
+      - inception
+    volumes:
+      - wordpress_data:/var/www/wordpress
+
+networks:
+  inception:
+    driver: bridge
+
+volumes:
+  wordpress_data:
+    driver: local                         # Volume is stored on the host machine
+    driver_opts:
+      type: 'none'                          # None type specifies that the volume is not managed by Docker, but rather is a directory on the host machine
+      o: 'bind'
+      device: '/home/jbanchon/data/wordpress' # Path to the directory on the host machine where the volume is stored
+
+  mariadb_data:
+    driver: local
+    driver_opts:
+      type: 'none'
+      o: 'bind'
+      device: '/home/jbanchon/data/mariadb'   # Path to the directory on the host machine where the volume is stored

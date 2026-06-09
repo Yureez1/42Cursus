@@ -1,0 +1,23 @@
+# Git
+
+.git
+.gitignore
+
+# Env and Secrets
+.env
+secrets/
+*.env
+
+# Doc and scripts
+README.md
+USER_DOC.md
+DEV_DOC.md
+Makefile
+
+# Files system
+.DS_Store
+.*swp
+*.bak
+*~
+
+data/
